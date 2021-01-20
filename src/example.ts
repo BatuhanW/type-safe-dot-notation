@@ -1,4 +1,4 @@
-import type { GenerateDotNotation } from "./types";
+import type { FlattenedWithDotNotation } from "./types";
 
 const exampleSchema = {
   key00: {
@@ -21,22 +21,19 @@ const exampleSchema = {
   key03: 44,
 };
 
-type DotNotation = GenerateDotNotation<typeof exampleSchema>;
+/**
+ * get() function with correct return type
+ */
+function get<T, TPath extends keyof FlattenedWithDotNotation<T> & string>(
+  target: T,
+  path: TPath
+) {
+  // quick-and-dirty deep getter in JS
+  return path.split('.').reduce((current: unknown, key) => {
+    return current && typeof current === 'object' && (current as any)[key];
+  }, target) as FlattenedWithDotNotation<T>[TPath];
+}
 
-const key00: DotNotation = "key00";
-const key0011: DotNotation = "key00.key11";
-const key0012: DotNotation = "key00.key12";
-const key0013: DotNotation = "key00.key13";
-const key0014: DotNotation = "key00.key14";
-const key001421: DotNotation = "key00.key14.key21";
-const key001422: DotNotation = "key00.key14.key22";
-const key001433: DotNotation = "key00.key14.key23";
-const key001424: DotNotation = "key00.key14.key24";
-const key00142431: DotNotation = "key00.key14.key24.key31";
-const key00142432: DotNotation = "key00.key14.key24.key32";
-const key00142433: DotNotation = "key00.key14.key24.key33";
-const key01: DotNotation = "key01";
-const key02: DotNotation = "key02";
-const key03: DotNotation = "key03";
-
-const invalidKey: DotNotation = "";
+const value00 = get(exampleSchema, "key00.key13"); // type: number
+const value001424 = get(exampleSchema, "key00.key14.key24"); // type: { key31: string; key32: string[]; key33: number; }
+const invalidKey = get(exampleSchema, "key999"); // errors
